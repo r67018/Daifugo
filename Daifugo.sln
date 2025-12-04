@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Daifugo.App", "Daifugo.App\Daifugo.App.csproj", "{44ACD43B-3C4B-496D-9F2D-5D87E45990BD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{44ACD43B-3C4B-496D-9F2D-5D87E45990BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44ACD43B-3C4B-496D-9F2D-5D87E45990BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44ACD43B-3C4B-496D-9F2D-5D87E45990BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44ACD43B-3C4B-496D-9F2D-5D87E45990BD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
