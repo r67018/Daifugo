@@ -2,6 +2,10 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Daifugo.App", "Daifugo.App\Daifugo.App.csproj", "{44ACD43B-3C4B-496D-9F2D-5D87E45990BD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Daifugo.Lib", "Daifugo.Lib\Daifugo.Lib.csproj", "{36BE957F-44F9-4EA7-9838-0CB24F0CD5DE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Daifugo.Console", "Daifugo.Console\Daifugo.Console.csproj", "{5BD1539E-827D-4F95-AF34-68CECF835D7E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +16,13 @@ Global
 		{44ACD43B-3C4B-496D-9F2D-5D87E45990BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{44ACD43B-3C4B-496D-9F2D-5D87E45990BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{44ACD43B-3C4B-496D-9F2D-5D87E45990BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36BE957F-44F9-4EA7-9838-0CB24F0CD5DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36BE957F-44F9-4EA7-9838-0CB24F0CD5DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36BE957F-44F9-4EA7-9838-0CB24F0CD5DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36BE957F-44F9-4EA7-9838-0CB24F0CD5DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5BD1539E-827D-4F95-AF34-68CECF835D7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5BD1539E-827D-4F95-AF34-68CECF835D7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5BD1539E-827D-4F95-AF34-68CECF835D7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5BD1539E-827D-4F95-AF34-68CECF835D7E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
