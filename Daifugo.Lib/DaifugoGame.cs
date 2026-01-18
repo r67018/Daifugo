@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace Daifugo.Lib;
 
 /// <summary>
@@ -17,7 +19,7 @@ public static class DaifugoGame
         {
             nextGameState = nextGameState with
             {
-                LastPlayedCard = null,
+                LastPlayedCards = null,
                 PassStreak = 0 // 新しい場になるのでパス回数もリセット
             };
         }
@@ -28,19 +30,38 @@ public static class DaifugoGame
     /// <summary>
     /// 指定したカードがプレイできるかチェックする関数
     /// </summary>
-    /// <param name="card">プレイしたいカード</param>
-    /// <param name="lastPlayedCard">山札の一番上のカード</param>
+    /// <param name="cards">プレイしたいカード</param>
+    /// <param name="lastPlayedCards">山札の一番上のカード</param>
     /// <returns></returns>
-    public static bool IsValidPlay(Card card, Card? lastPlayedCard)
+    public static bool IsValidPlay(ImmutableArray<Card> cards, ImmutableArray<Card>? lastPlayedCards)
     {
         // 一枚もプレイされていないなら必ず出せる
-        if (lastPlayedCard == null) return true;
-        // ジョーカーは常に出せる
-        if (card.Rank == Rank.Joker) return true;
-        // 山場がジョーカーの場合、スペードの3は出せる
-        if (lastPlayedCard.Value.Rank == Rank.Joker && card is { Suit: Suit.Spade, Rank: Rank.Three }) return true;
-        // 既にプレイされているなら、一番上のカードよりも強いカードを出す必要がある
-        return card.Rank > lastPlayedCard.Value.Rank;
+        if (lastPlayedCards == null && _isAllSameRank(cards)) return true;
+        if (lastPlayedCards == null) return false;
+        // 枚数が異なる場合は出せない
+        if (cards.Length != lastPlayedCards.Value.Length) return false;
+        // 山場がジョーカー1枚の場合、スペードの3は出せる
+        if (lastPlayedCards.Value.Length == 1 &&
+            lastPlayedCards.Value is [{ Rank: Rank.Joker }] && cards[0] is { Suit: Suit.Spade, Rank: Rank.Three }) return true;
+        // ペアの判定
+        return _isLegalPair(cards, lastPlayedCards.Value);
+    }
+
+    private static bool _isAllSameRank(ImmutableArray<Card> cards)
+    {
+        var firstRank = cards[0].Rank;
+        return cards.All(c => c.Rank == firstRank || c.Rank == Rank.Joker);
+    }
+
+    public static bool _isLegalPair(ImmutableArray<Card> cards, ImmutableArray<Card> lastPlayedCards)
+    {
+        // ペアの判定
+        // 山場の最も強いカードを取得
+        var strongestLastPlayedCard = lastPlayedCards.MaxBy(c => c.Rank);
+        // 同じ数字でかつ全てのカードが山場のカードより強い場合に出せる
+        // ジョーカーは全てのカードより強いとみなす
+        return _isAllSameRank(cards) &&
+               cards.All(c => c.Rank > strongestLastPlayedCard.Rank || c.Rank == Rank.Joker);
     }
 
     /// <summary>
@@ -96,19 +117,20 @@ public static class DaifugoGame
                     PlayerIndex = nextPlayerIndex,
                     LastPlayedPlayerIndex = gameState.PlayerIndex,
                     Hands = gameState.Hands.SetItem(gameState.PlayerIndex.Value,
-                        gameState.Hands[gameState.PlayerIndex.Value].Remove(play.Card)),
-                    LastPlayedCard = play.Card,
-                    PlayHistory = gameState.PlayHistory.Add(play.Card),
+                        gameState.Hands[gameState.PlayerIndex.Value].RemoveRange(play.Cards)),
+                    LastPlayedCards = play.Cards,
+                    PlayHistory = gameState.PlayHistory.Add(play.Cards),
                     PassStreak = 0
                 };
 
                 // ジョーカーをスペードの3で返した場合は、場をリセットし、同じプレイヤーが続けて出せるようにする
-                if (play.Card is { Suit: Suit.Spade, Rank: Rank.Three } &&
-                    gameState.LastPlayedCard is { Rank: Rank.Joker })
+                if (play.Cards is [{ Suit: Suit.Spade, Rank: Rank.Three }] &&
+                    gameState.LastPlayedCards != null &&
+                    gameState.LastPlayedCards.Value is [{ Rank: Rank.Joker }])
                 {
                     nextGameState = nextGameState with
                     {
-                        LastPlayedCard = null,
+                        LastPlayedCards = null,
                         PlayerIndex = gameState.PlayerIndex,
                         PassStreak = 0
                     };

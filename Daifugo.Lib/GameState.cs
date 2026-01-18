@@ -28,12 +28,12 @@ public record GameState
     /// 現在の場に出ているカード
     /// まだプレイされていない場合はnull
     /// </summary>
-    public required Card? LastPlayedCard { get; init; }
+    public required ImmutableArray<Card>? LastPlayedCards { get; init; }
     
     /// <summary>
     /// 今までに出されたカード
     /// </summary>
-    public required ImmutableList<Card> PlayHistory { get; init; }
+    public required ImmutableList<ImmutableArray<Card>> PlayHistory { get; init; }
 
     /// <summary>
     /// パスが連続した回数
