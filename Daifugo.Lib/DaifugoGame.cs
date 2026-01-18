@@ -9,7 +9,7 @@ public static class DaifugoGame
 {
     public static GameState PlayOneTurn(GameState gameState, PlayerAction action)
     {
-        var nextGameState = ApplyPlayAction(gameState, action);
+        var nextGameState = _applyPlayAction(gameState, action);
 
         // 手札が残っているプレイヤーの数を数える
         var activePlayerCount = nextGameState.Hands.Count(hand => hand.Count > 0);
@@ -161,7 +161,7 @@ public static class DaifugoGame
 
 
 
-    private static GameState ApplyPlayAction(GameState gameState, PlayerAction action)
+    private static GameState _applyPlayAction(GameState gameState, PlayerAction action)
     {
         // 次のプレイヤーを決定
         var nextPlayerIndex = GetNextPlayablePlayerIndex(
@@ -186,6 +186,17 @@ public static class DaifugoGame
                 if (play.Cards is [{ Suit: Suit.Spade, Rank: Rank.Three }] &&
                     gameState.LastPlayedCards != null &&
                     gameState.LastPlayedCards.Value is [{ Rank: Rank.Joker }])
+                {
+                    nextGameState = nextGameState with
+                    {
+                        LastPlayedCards = null,
+                        PlayerIndex = gameState.PlayerIndex,
+                        PassStreak = 0
+                    };
+                }
+
+                // 8を出した場合は、場をリセットし、同じプレイヤーが続けて出せるようにする
+                if (play.Cards.Any(c => c.Rank == Rank.Eight))
                 {
                     nextGameState = nextGameState with
                     {
