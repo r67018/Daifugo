@@ -96,7 +96,7 @@ public class MonteCarloSolver : ISolver
         {
             foreach (var combination in _getCombinations(hand, k))
             {
-                if (DaifugoGame.IsValidPlay(combination, lastPlayedCards))
+                if (DaifugoGame.IsLegalPlay(combination, lastPlayedCards))
                 {
                     legalPlays.Add(combination);
                 }

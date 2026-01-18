@@ -33,34 +33,93 @@ public static class DaifugoGame
     /// <param name="cards">プレイしたいカード</param>
     /// <param name="lastPlayedCards">山札の一番上のカード</param>
     /// <returns></returns>
-    public static bool IsValidPlay(ImmutableArray<Card> cards, ImmutableArray<Card>? lastPlayedCards)
+    public static bool IsLegalPlay(ImmutableArray<Card> cards, ImmutableArray<Card>? lastPlayedCards)
     {
-        // 一枚もプレイされていないなら必ず出せる
-        if (lastPlayedCards == null && _isAllSameRank(cards)) return true;
+        // 一枚もプレイされていないなら合法な手を何でも出せる
+        if (lastPlayedCards == null && _isPair(cards)) return true;
+        if (lastPlayedCards == null && _isSequence(cards)) return true;
         if (lastPlayedCards == null) return false;
         // 枚数が異なる場合は出せない
         if (cards.Length != lastPlayedCards.Value.Length) return false;
         // 山場がジョーカー1枚の場合、スペードの3は出せる
         if (lastPlayedCards.Value.Length == 1 &&
             lastPlayedCards.Value is [{ Rank: Rank.Joker }] && cards[0] is { Suit: Suit.Spade, Rank: Rank.Three }) return true;
-        // ペアの判定
-        return _isLegalPair(cards, lastPlayedCards.Value);
+        // 山場がペアで手がそれより強いペアなら出せる
+        if (_isPair(lastPlayedCards.Value) && _isLegalPair(cards, lastPlayedCards.Value)) return true;
+        // 山場が連番で手がそれより強い連番なら出せる
+        if (_isSequence(lastPlayedCards.Value) && _isLegalSequence(cards, lastPlayedCards.Value)) return true;
+        // それ以外は出せないl
+        return false;
     }
 
-    private static bool _isAllSameRank(ImmutableArray<Card> cards)
+    /// <summary>
+    /// ペアの判定
+    /// </summary>
+    /// <param name="cards"></param>
+    /// <returns></returns>
+    private static bool _isPair(ImmutableArray<Card> cards)
     {
         var firstRank = cards[0].Rank;
         return cards.All(c => c.Rank == firstRank || c.Rank == Rank.Joker);
     }
 
-    public static bool _isLegalPair(ImmutableArray<Card> cards, ImmutableArray<Card> lastPlayedCards)
+    /// <summary>
+    /// 山場のペアより強いペアかチェックする関数
+    /// </summary>
+    /// <param name="cards"></param>
+    /// <param name="lastPlayedCards"></param>
+    /// <returns></returns>
+    private static bool _isLegalPair(ImmutableArray<Card> cards, ImmutableArray<Card> lastPlayedCards)
     {
         // ペアの判定
         // 山場の最も強いカードを取得
         var strongestLastPlayedCard = lastPlayedCards.MaxBy(c => c.Rank);
         // 同じ数字でかつ全てのカードが山場のカードより強い場合に出せる
         // ジョーカーは全てのカードより強いとみなす
-        return _isAllSameRank(cards) &&
+        return cards.Length == lastPlayedCards.Length &&
+               _isPair(cards) &&
+               cards.All(c => c.Rank > strongestLastPlayedCard.Rank || c.Rank == Rank.Joker);
+    }
+
+    /// <summary>
+    /// 連番の判定
+    /// </summary>
+    /// <param name="cards"></param>
+    /// <returns></returns>
+    private static bool _isSequence(ImmutableArray<Card> cards)
+    {
+        // 連番は3枚以上
+        if (cards.Length < 3)
+        {
+            return false;
+        }
+
+        // ジョーカーを除いたカードをランク順にソートして連番かチェック
+        var sortedCards = cards
+            .Where(c => c.Rank != Rank.Joker)
+            .OrderBy(c => c.Rank)
+            .ToArray();
+        for (var i = 1; i < sortedCards.Length; i++)
+        {
+            if (sortedCards[i].Rank - sortedCards[i - 1].Rank != 1)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// 山場の連番より強い連番かチェックする関数
+    /// </summary>
+    /// <param name="cards"></param>
+    /// <param name="lastPlayedCards"></param>
+    /// <returns></returns>
+    private static bool _isLegalSequence(ImmutableArray<Card> cards, ImmutableArray<Card> lastPlayedCards)
+    {
+        var strongestLastPlayedCard = lastPlayedCards.MaxBy(c => c.Rank);
+        return cards.Length == lastPlayedCards.Length &&
+               _isSequence(cards) &&
                cards.All(c => c.Rank > strongestLastPlayedCard.Rank || c.Rank == Rank.Joker);
     }
 
