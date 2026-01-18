@@ -130,8 +130,8 @@ public static class DaifugoGame
     /// <returns></returns>
     public static bool IsGameOver(IReadOnlyCollection<int> handCounts)
     {
-        // 全員の手札が空なら終了
-        return handCounts.All(count => count == 0);
+        // 手札が残っているプレイヤーが1人以下ならゲーム終了
+        return handCounts.Count(handCount => handCount > 0) <= 1;
     }
 
     /// <summary>
