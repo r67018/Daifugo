@@ -155,8 +155,8 @@ public static class DaifugoGame
                 return nextIndex;
             }
         }
-        // 全員の手札が0の場合は例外を投げる
-        throw new InvalidOperationException("All players have empty hands.");
+        // 全員の手札が0の場合はとりあえず現在のプレイヤーを返す
+        return index;
     }
 
 
