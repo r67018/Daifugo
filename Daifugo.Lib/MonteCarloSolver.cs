@@ -23,13 +23,13 @@ public class MonteCarloSolver : ISolver
         // 相手の手札を生成
         var opponentHands = _generateOpponentHands(input.OpponentHandCount, input.PlayHistory);
         // 勝利数を格納するハッシュ
-        var winCount = new Dictionary<ImmutableArray<Card>, int>();
+        var winCounts = new Dictionary<ImmutableArray<Card>, int>();
 
         // 各合法手でシミュレーションを実行
         foreach (var play in legalPlays)
         {
             // 勝利数を初期化
-            winCount[play] = 0;
+            winCounts[play] = 0;
 
             // 自分の手札からプレイしたカードを削除
             var newMyHand = input.Hand.RemoveRange(play);
@@ -62,21 +62,21 @@ public class MonteCarloSolver : ISolver
                 PassStreak = input.PassStreak
             };
 
-            // シミュレーションを実施
-            for (var i = 0; i < simulationCount; i++)
-            {
-                // プレイアウト
-                var winnerIndex = _playout(gameState);
-                // 勝利したならカウントを増やす
-                if (winnerIndex == input.PlayerIndex)
+            var winCount = Enumerable.Range(0, simulationCount)
+                .AsParallel()
+                .Select(_ =>
                 {
-                    winCount[play] = winCount.GetValueOrDefault(play) + 1;
-                }
-            }
+                    // プレイアウト
+                    var winnerIndex = _playout(gameState);
+                    // 勝利したならカウントを増やす
+                    return winnerIndex == input.PlayerIndex ? 1 : 0;
+                })
+                .Sum();
+            winCounts[play] = winCount;
         }
 
         // 最も勝利数が多いカードを取得
-        var bestCard = winCount
+        var bestCard = winCounts
             .OrderByDescending(x => x.Value)
             .First();
         // 勝利数が0より大きい場合のみ返す

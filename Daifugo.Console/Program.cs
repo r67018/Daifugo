@@ -40,7 +40,7 @@ while (!DaifugoGame.IsGameOver(gameState.Hands.Select(h => h.Count).ToArray()))
 {
     // 現在のプレイヤーの行動を決定
     var solverInput = new SolverInput(gameState);
-    var action = solver.FindMostValidPlay(solverInput, 5);
+    var action = solver.FindMostValidPlay(solverInput, 20);
     var currentPlayer = gameState.PlayerIndex;
 
     // ゲーム状態を更新
@@ -128,7 +128,7 @@ while (!DaifugoGame.IsGameOver(gameState.Hands.Select(h => h.Count).ToArray()))
     Console.WriteLine();
     Console.WriteLine("------------------");
 
-    Console.ReadLine();
+    // Console.ReadLine();
 }
 
 Console.WriteLine("Game Over!");
