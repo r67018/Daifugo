@@ -7,7 +7,7 @@ public class MonteCarloSolver : ISolver
     public PlayerAction FindMostValidPlay(SolverInput input, int simulationCount)
     {
         // 合法手を列挙
-        var legalPlays = _generateLegalPlays(input.Hand, input.LastPlayedCards);
+        var legalPlays = _generateLegalPlays(input.Hand, input.Table);
 
         // 解が一意に定まる場合はその解を返す
         switch (legalPlays.Count)
@@ -57,7 +57,7 @@ public class MonteCarloSolver : ISolver
                 PlayerIndex = nextPlayerIndex,
                 LastPlayedPlayerIndex = input.PlayerIndex,
                 Hands = nextHands,
-                LastPlayedCards = play,
+                Table = input.Table,
                 PlayHistory = input.PlayHistory.Add(play),
                 PassStreak = input.PassStreak
             };
@@ -89,14 +89,14 @@ public class MonteCarloSolver : ISolver
         return new PlayerAction.Play(legalPlays[Random.Shared.Next(legalPlays.Count)]);
     }
 
-    private static List<ImmutableArray<Card>> _generateLegalPlays(ImmutableList<Card> hand, ImmutableArray<Card>? lastPlayedCards)
+    private static List<ImmutableArray<Card>> _generateLegalPlays(ImmutableList<Card> hand, ImmutableList<ImmutableArray<Card>> table)
     {
         var legalPlays = new List<ImmutableArray<Card>>();
         for (var k = 1; k <= 4; k++)
         {
             foreach (var combination in _getCombinations(hand, k))
             {
-                if (DaifugoGame.IsLegalPlay(combination, lastPlayedCards))
+                if (DaifugoGame.IsValidPlay(combination, table))
                 {
                     legalPlays.Add(combination);
                 }
@@ -167,7 +167,7 @@ public class MonteCarloSolver : ISolver
             var playerHand = gameState.Hands[gameState.PlayerIndex.Value];
 
             // 合法手を取得
-            var validPlays = _generateLegalPlays(playerHand, gameState.LastPlayedCards);
+            var validPlays = _generateLegalPlays(playerHand, gameState.Table);
 
             // 合法手があるならランダムに選択
             if (validPlays.Count > 0)

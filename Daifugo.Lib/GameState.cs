@@ -25,11 +25,11 @@ public record GameState
     public required ImmutableArray<ImmutableList<Card>> Hands { get; init; }
 
     /// <summary>
-    /// 現在の場に出ているカード
-    /// まだプレイされていない場合はnull
+    /// 現在の場に出ているカードのスタック
+    /// 空の場合は空リスト
     /// </summary>
-    public required ImmutableArray<Card>? LastPlayedCards { get; init; }
-    
+    public required ImmutableList<ImmutableArray<Card>> Table { get; init; }
+
     /// <summary>
     /// 今までに出されたカード
     /// </summary>

@@ -26,9 +26,9 @@ var startingPlayerIndex = Array.FindIndex(hands, hand => hand.Contains(new Card(
 var gameState = new GameState
 {
     PlayerIndex = new PlayerIndex(startingPlayerIndex),
-    LastPlayedPlayerIndex = new PlayerIndex((startingPlayerIndex - 1) % playerCount), // とりあえず
+    LastPlayedPlayerIndex = new PlayerIndex((startingPlayerIndex - 1 + playerCount) % playerCount), // とりあえず
     Hands = [.. hands.Select(h => h.ToImmutableList())],
-    LastPlayedCards = null,
+    Table = ImmutableList<ImmutableArray<Card>>.Empty,
     PlayHistory = [],
     PassStreak = 0
 };
@@ -115,8 +115,8 @@ while (!DaifugoGame.IsGameOver(gameState.Hands.Select(h => h.Count).ToArray()))
     Console.WriteLine($"Player {currentPlayer.Value} played: {actionMessage}");
 
     // 場に出ているカードを表示
-    var lastPlayedMessage = gameState.LastPlayedCards.HasValue
-        ? $"[{FormatCards(gameState.LastPlayedCards.Value)}]"
+    var lastPlayedMessage = gameState.Table.Count > 0
+        ? $"[{FormatCards(gameState.Table.Last())}]"
         : "None";
     Console.WriteLine($"Last Played Card: {lastPlayedMessage}");
     // 各プレイヤーの手札数を表示
@@ -128,7 +128,7 @@ while (!DaifugoGame.IsGameOver(gameState.Hands.Select(h => h.Count).ToArray()))
     Console.WriteLine();
     Console.WriteLine("------------------");
 
-    // Console.ReadLine();
+    Console.ReadLine();
 }
 
 Console.WriteLine("Game Over!");
