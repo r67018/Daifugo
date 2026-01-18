@@ -6,11 +6,11 @@ public enum Suit
     Heart,
     Diamond,
     Club,
+    Joker,
 }
 
 public enum Rank
 {
-    Two = 2,
     Three = 3,
     Four = 4,
     Five = 5,
@@ -23,6 +23,8 @@ public enum Rank
     Queen = 12,
     King = 13,
     Ace = 14,
+    Two = 15,
+    Joker = 16,
 }
 
 public static class RankExtensions

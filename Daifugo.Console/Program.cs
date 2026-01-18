@@ -6,9 +6,10 @@ const int playerCount = 3;
 
 // 全パターンのカードを生成してシャッフル
 var cards =
-    from suit in Enum.GetValues<Suit>()
-    from rank in Enum.GetValues<Rank>()
+    from suit in Enum.GetValues<Suit>().Where(s => s != Suit.Joker)
+    from rank in Enum.GetValues<Rank>().Where(r => r != Rank.Joker)
     select new Card(suit, rank);
+cards = cards.Append(new Card(Suit.Joker, Rank.Joker));
 var shuffled = cards.Shuffle().ToArray();
 
 // 手札を配る
@@ -18,11 +19,14 @@ for (var i = 0; i < shuffled.Length; i++)
     hands[i % playerCount].Add(shuffled[i]);
 }
 
+// ダイヤの3を持っているプレイヤーを先攻にする
+var startingPlayerIndex = Array.FindIndex(hands, hand => hand.Contains(new Card(Suit.Diamond, Rank.Three)));
+
 // ゲーム状態を初期化
 var gameState = new GameState
 {
-    PlayerIndex = new PlayerIndex(0),
-    LastPlayedPlayerIndex = new PlayerIndex(playerCount - 1), // とりあえず
+    PlayerIndex = new PlayerIndex(startingPlayerIndex),
+    LastPlayedPlayerIndex = new PlayerIndex((startingPlayerIndex - 1) % playerCount), // とりあえず
     Hands = [.. hands.Select(h => h.ToImmutableList())],
     LastPlayedCard = null,
     PlayHistory = [],
@@ -36,7 +40,7 @@ while (!DaifugoGame.IsGameOver(gameState.Hands.Select(h => h.Count).ToArray()))
 {
     // 現在のプレイヤーの行動を決定
     var solverInput = new SolverInput(gameState);
-    var action = solver.FindMostValidPlay(solverInput, 10);
+    var action = solver.FindMostValidPlay(solverInput, 100);
     var currentPlayer = gameState.PlayerIndex;
 
     // ゲーム状態を更新

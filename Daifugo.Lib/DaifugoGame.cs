@@ -35,6 +35,10 @@ public static class DaifugoGame
     {
         // 一枚もプレイされていないなら必ず出せる
         if (lastPlayedCard == null) return true;
+        // ジョーカーは常に出せる
+        if (card.Rank == Rank.Joker) return true;
+        // 山場がジョーカーの場合、スペードの3は出せる
+        if (lastPlayedCard.Value.Rank == Rank.Joker && card is { Suit: Suit.Spade, Rank: Rank.Three }) return true;
         // 既にプレイされているなら、一番上のカードよりも強いカードを出す必要がある
         return card.Rank > lastPlayedCard.Value.Rank;
     }
@@ -83,26 +87,44 @@ public static class DaifugoGame
         var nextPlayerIndex = GetNextPlayablePlayerIndex(
             gameState.PlayerIndex, handCounts: gameState.Hands.Select(hand => hand.Count).ToArray());
 
-        // ゲーム状態を更新して返す
-        return action switch
+        switch (action)
         {
-            // カードをプレイした場合は場に出し、次のプレイヤーへ
-            PlayerAction.Play play => new GameState
-            {
-                PlayerIndex = nextPlayerIndex,
-                LastPlayedPlayerIndex = gameState.PlayerIndex,
-                Hands = gameState.Hands.SetItem(gameState.PlayerIndex.Value, gameState.Hands[gameState.PlayerIndex.Value].Remove(play.Card)),
-                LastPlayedCard = play.Card,
-                PlayHistory = gameState.PlayHistory.Add(play.Card),
-                PassStreak = 0
-            },
-            // パスならそのまま次のプレイヤーへ
-            PlayerAction.Pass => gameState with
-            {
-                PlayerIndex = nextPlayerIndex,
-                PassStreak = gameState.PassStreak + 1
-            },
-            _ => throw new InvalidOperationException("Unknown PlayerAction type.")
-        };
+            // カードを出す場合
+            case PlayerAction.Play play:
+                var nextGameState = new GameState
+                {
+                    PlayerIndex = nextPlayerIndex,
+                    LastPlayedPlayerIndex = gameState.PlayerIndex,
+                    Hands = gameState.Hands.SetItem(gameState.PlayerIndex.Value,
+                        gameState.Hands[gameState.PlayerIndex.Value].Remove(play.Card)),
+                    LastPlayedCard = play.Card,
+                    PlayHistory = gameState.PlayHistory.Add(play.Card),
+                    PassStreak = 0
+                };
+
+                // ジョーカーをスペードの3で返した場合は、場をリセットし、同じプレイヤーが続けて出せるようにする
+                if (play.Card is { Suit: Suit.Spade, Rank: Rank.Three } &&
+                    gameState.LastPlayedCard is { Rank: Rank.Joker })
+                {
+                    nextGameState = nextGameState with
+                    {
+                        LastPlayedCard = null,
+                        PlayerIndex = gameState.PlayerIndex,
+                        PassStreak = 0
+                    };
+                }
+
+                return nextGameState;
+
+            // パスの場合は次のプレイヤーに交代し、パス回数を増やす
+            case PlayerAction.Pass:
+                return gameState with
+                {
+                    PlayerIndex = nextPlayerIndex,
+                    PassStreak = gameState.PassStreak + 1
+                };
+            default:
+                throw new ArgumentOutOfRangeException(nameof(action), "Unknown PlayerAction type.");
+        }
     }
 }
