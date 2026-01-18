@@ -4,34 +4,8 @@ using Daifugo.Lib;
 // プレイヤーの人数
 const int playerCount = 3;
 
-// 全パターンのカードを生成してシャッフル
-var cards =
-    from suit in Enum.GetValues<Suit>().Where(s => s != Suit.Joker)
-    from rank in Enum.GetValues<Rank>().Where(r => r != Rank.Joker)
-    select new Card(suit, rank);
-cards = cards.Append(new Card(Suit.Joker, Rank.Joker));
-var shuffled = cards.Shuffle().ToArray();
-
-// 手札を配る
-var hands = Enumerable.Range(0, playerCount).Select(_ => new List<Card>()).ToArray();
-for (var i = 0; i < shuffled.Length; i++)
-{
-    hands[i % playerCount].Add(shuffled[i]);
-}
-
-// ダイヤの3を持っているプレイヤーを先攻にする
-var startingPlayerIndex = Array.FindIndex(hands, hand => hand.Contains(new Card(Suit.Diamond, Rank.Three)));
-
 // ゲーム状態を初期化
-var gameState = new GameState
-{
-    PlayerIndex = new PlayerIndex(startingPlayerIndex),
-    LastPlayedPlayerIndex = new PlayerIndex((startingPlayerIndex - 1 + playerCount) % playerCount), // とりあえず
-    Hands = [.. hands.Select(h => h.ToImmutableList())],
-    Table = ImmutableList<ImmutableArray<Card>>.Empty,
-    PlayHistory = [],
-    PassStreak = 0
-};
+var gameState = DaifugoHelper.GenerateInitialGameState(playerCount);
 
 var solver = new MonteCarloSolver();
 

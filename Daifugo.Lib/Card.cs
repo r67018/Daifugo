@@ -44,4 +44,12 @@ public static class RankExtensions
     }
 }
 
-public readonly record struct Card(Suit Suit, Rank Rank);
+public readonly record struct Card(Suit Suit, Rank Rank) : IComparable<Card>
+{
+    public int CompareTo(Card other)
+    {
+        var rankComparison = Rank.CompareTo(other.Rank);
+        if (rankComparison != 0) return rankComparison;
+        return Suit.CompareTo(other.Suit);
+    }
+}
