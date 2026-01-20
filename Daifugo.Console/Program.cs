@@ -9,12 +9,15 @@ var gameState = DaifugoHelper.GenerateInitialGameState(playerCount);
 
 var solver = new MonteCarloSolver();
 
+// 時間計測
+var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
 var turnCount = 0;
 while (!DaifugoGame.IsGameOver(gameState.Hands.Select(h => h.Count).ToArray()))
 {
     // 現在のプレイヤーの行動を決定
     var solverInput = new SolverInput(gameState);
-    var action = solver.FindMostValidPlay(solverInput, 20);
+    var action = solver.FindMostValidPlay(solverInput, 5);
     var currentPlayer = gameState.PlayerIndex;
 
     // ゲーム状態を更新
@@ -102,8 +105,13 @@ while (!DaifugoGame.IsGameOver(gameState.Hands.Select(h => h.Count).ToArray()))
     Console.WriteLine();
     Console.WriteLine("------------------");
 
-    Console.ReadLine();
+    // Console.ReadLine();
 }
 
+// 時間計測終了
+stopwatch.Stop();
+
 Console.WriteLine("Game Over!");
+Console.WriteLine($"Total Turns: {turnCount}");
+Console.WriteLine($"Elapsed Time: {stopwatch.Elapsed.TotalSeconds} s");
 
