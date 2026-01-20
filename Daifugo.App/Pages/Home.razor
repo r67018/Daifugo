@@ -18,6 +18,10 @@
 
 <MudSlider @bind-Value="_simulationCount" Min="1" Max="50" Step="1" Color="Color.Info" ValueLabel="true">Simulation Count: @_simulationCount</MudSlider>
 
+<div>
+    現在のターン: プレイヤー@(CurrentPlayerIndex.Value + 1)
+</div>
+
 <MudStack Row="true" Wrap="Wrap.Wrap" Justify="Justify.Center" Spacing="2">
     @foreach (var card in _gameState.Table.LastOrDefault([]))
     {
@@ -37,15 +41,24 @@
 </MudStack>
 
 <MudStack Row="true" Justify="Justify.Center" Class="mt-4">
-    <MudButton OnClick="@(() => OnUserAction(new PlayerAction.Play([.._selectedCards])))"
-               Disabled="@(!AreSelectedCardsValid)"
-               Variant="Variant.Filled" Color="Color.Primary">
-        Play
-    </MudButton>
-    <MudButton OnClick="@(() => OnUserAction(new PlayerAction.Pass()))"
-               Variant="Variant.Outlined" Color="Color.Primary">
-        Pass
-    </MudButton>
+    @if (_gameStarted)
+    {
+        <MudButton OnClick="@(() => OnUserAction(new PlayerAction.Play([.._selectedCards])))"
+                   Disabled="@(!AreSelectedCardsValid)"
+                   Variant="Variant.Filled" Color="Color.Primary">
+            Play
+        </MudButton>
+        <MudButton OnClick="@(() => OnUserAction(new PlayerAction.Pass()))"
+                   Variant="Variant.Outlined" Color="Color.Primary">
+            Pass
+        </MudButton>
+    }
+    else
+    {
+        <MudButton OnClick="@OnGameStart" Variant="Variant.Filled" Color="Color.Primary">
+            Start Game
+        </MudButton>
+    }
 </MudStack>
 
 @* 行動履歴 *@
@@ -78,10 +91,18 @@
     private readonly PlayerIndex _userPlayerIndex = new(0);
     private readonly HashSet<Card> _selectedCards = [];
     private readonly List<(PlayerIndex, PlayerAction)> _actionHistory = [];
+    private bool _gameStarted = false;
 
     private GameState _gameState = DaifugoHelper.GenerateInitialGameState(PlayerCount);
     private ImmutableList<Card> UsersHand => _gameState.Hands[_userPlayerIndex.Value];
     private bool AreSelectedCardsValid => DaifugoGame.IsValidPlay([.._selectedCards], _gameState.Table);
+    private PlayerIndex CurrentPlayerIndex => _gameState.PlayerIndex;
+
+    private void OnGameStart()
+    {
+        _gameStarted = true;
+        _processComputerTurn();
+    }
 
     private void OnToggleCard(Card card)
     {
@@ -107,6 +128,11 @@
         _selectedCards.Clear();
         _actionHistory.Add((_userPlayerIndex, action));
         // コンピュータのターンを処理
+        _processComputerTurn();
+    }
+    
+    private void _processComputerTurn()
+    {
         while (_gameState.PlayerIndex !=  _userPlayerIndex)
         {
             var currentPlayerIndex = _gameState.PlayerIndex;
