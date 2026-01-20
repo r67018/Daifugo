@@ -17,14 +17,18 @@
 </div>
 
 <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Class="my-2">
-    @if (IsUserTurn)
+    @if (IsGameOver)
+    {
+        <MudText Typo="Typo.h5" Color="Color.Success">ゲーム終了！</MudText>
+    }
+    else if (IsUserTurn)
     {
         <MudText Typo="Typo.body2">あなたのターンです</MudText>
     }
     else
     {
-            <MudProgressCircular Indeterminate="true" Color="Color.Secondary" Size="Size.Small" />
-            <MudText Typo="Typo.body2">プレイヤー@(CurrentPlayerIndex.Value + 1)が思考中...</MudText>
+        <MudProgressCircular Indeterminate="true" Color="Color.Secondary" Size="Size.Small"/>
+        <MudText Typo="Typo.body2">プレイヤー@(CurrentPlayerIndex.Value + 1)が思考中...</MudText>
     }
 </MudStack>
 
@@ -97,6 +101,7 @@
     private bool AreSelectedCardsValid => DaifugoGame.IsValidPlay([.._selectedCards], _gameState.Table);
     private PlayerIndex CurrentPlayerIndex => _gameState.PlayerIndex;
     private bool IsUserTurn => _gameState.PlayerIndex == _userPlayerIndex;
+    private bool IsGameOver => DaifugoGame.IsGameOver([.._gameState.Hands.Select(h => h.Count)]);
 
     protected override async Task OnInitializedAsync()
     {
@@ -135,7 +140,7 @@
     
     private async Task _processComputerTurn()
     {
-        while (!IsUserTurn && !DaifugoGame.IsGameOver([.._gameState.Hands.Select(h => h.Count)]))
+        while (!IsUserTurn && !IsGameOver)
         {
             await Task.Delay(100);
             StateHasChanged();
