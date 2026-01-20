@@ -16,6 +16,18 @@
     現在のターン: プレイヤー@(CurrentPlayerIndex.Value + 1)
 </div>
 
+<MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Class="my-2">
+    @if (IsUserTurn)
+    {
+        <MudText Typo="Typo.body2">あなたのターンです</MudText>
+    }
+    else
+    {
+            <MudProgressCircular Indeterminate="true" Color="Color.Secondary" Size="Size.Small" />
+            <MudText Typo="Typo.body2">プレイヤー@(CurrentPlayerIndex.Value + 1)が思考中...</MudText>
+    }
+</MudStack>
+
 <MudStack Row="true" Wrap="Wrap.Wrap" Justify="Justify.Center" Spacing="2">
     @foreach (var card in _gameState.Table.LastOrDefault([]))
     {
@@ -123,7 +135,7 @@
     
     private async Task _processComputerTurn()
     {
-        while (_gameState.PlayerIndex !=  _userPlayerIndex || DaifugoGame.IsGameOver([.._gameState.Hands.Select(h => h.Count)]))
+        while (!IsUserTurn && !DaifugoGame.IsGameOver([.._gameState.Hands.Select(h => h.Count)]))
         {
             await Task.Delay(100);
             StateHasChanged();
