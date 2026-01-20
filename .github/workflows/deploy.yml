@@ -1,0 +1,35 @@
+on:
+  push:
+    branches: [ main ]  # mainブランチにプッシュされた時に実行
+  workflow_dispatch:    # 手動で実行ボタンを押せるようにもしておく
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish
+        run: dotnet publish -c Release -o release
+
+      # ベースパスをGitHub Pages用に修正
+      - name: Fix base-tag for GitHub Pages
+        run: |
+          # "user/repo-name" から "repo-name" だけを取り出す
+          REPO_NAME=$(basename "${{ github.repository }}")
+          # index.html 内の <base href="/" /> を <base href="/repo-name/" /> に書き換え
+          sed -i "s|<base href=\"/\" />|<base href=\"/$REPO_NAME/\" />|g" release/wwwroot/index.html
+
+      - name: Add .nojekyll
+        run: touch release/wwwroot/.nojekyll
+
+      - name: Upload to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: release/wwwroot
+          branch: gh-pages # デプロイ先のブランチ
