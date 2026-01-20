@@ -35,6 +35,8 @@ public static class DaifugoGame
     /// <returns></returns>
     public static bool IsValidPlay(ImmutableArray<Card> cards, ImmutableList<ImmutableArray<Card>> table)
     {
+        if (cards.IsEmpty) return false;
+        
         var lastPlayedCards = table.Count > 0 ? (ImmutableArray<Card>?)table.Last() : null;
 
         // 一枚もプレイされていないなら合法な手を何でも出せる

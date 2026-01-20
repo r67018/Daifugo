@@ -1,7 +1,119 @@
 ﻿@page "/"
+@using System.Collections.Immutable
+@using Daifugo.App.Shared
+@using Daifugo.Lib
 
-<PageTitle>Home</PageTitle>
+<PageTitle>大富豪</PageTitle>
 
-<h1>Hello, world!</h1>
+<div>
+    残り枚数:
+    @for (var i = 0; i < PlayerCount; i++)
+    {
+        var playerIndex = new PlayerIndex(i);
+        <span class="mx-2">
+            プレイヤー@(i + 1): @_gameState.Hands[playerIndex.Value].Count 枚
+        </span>
+    }
+</div>
 
-Welcome to your new app.
+<MudSlider @bind-Value="_simulationCount" Min="1" Max="50" Step="1" Color="Color.Info" ValueLabel="true">Simulation Count: @_simulationCount</MudSlider>
+
+<MudStack Row="true" Wrap="Wrap.Wrap" Justify="Justify.Center" Spacing="2">
+    @foreach (var card in _gameState.Table.LastOrDefault([]))
+    {
+        <PlayingCard Card="card" />
+    }
+</MudStack>
+
+
+<MudStack Row="true" Wrap="Wrap.Wrap" Justify="Justify.Center" Spacing="2">
+    @foreach (var card in UsersHand)
+    {
+        var isSelected = _selectedCards.Contains(card);
+        <div @onclick="() => OnToggleCard(card)" style="@(isSelected ? "transform: translateY(-20px);" : "") transition: transform 0.2s; cursor: pointer;">
+            <PlayingCard Card="card" />
+        </div>
+    }
+</MudStack>
+
+<MudStack Row="true" Justify="Justify.Center" Class="mt-4">
+    <MudButton OnClick="@(() => OnUserAction(new PlayerAction.Play([.._selectedCards])))"
+               Disabled="@(!AreSelectedCardsValid)"
+               Variant="Variant.Filled" Color="Color.Primary">
+        Play
+    </MudButton>
+    <MudButton OnClick="@(() => OnUserAction(new PlayerAction.Pass()))"
+               Variant="Variant.Outlined" Color="Color.Primary">
+        Pass
+    </MudButton>
+</MudStack>
+
+@* 行動履歴 *@
+<div>
+    @foreach (var (index, action) in _actionHistory)
+    {
+        <MudStack Row="true">
+            <p>player @(index.Value + 1): </p>
+            @if (action is PlayerAction.Pass)
+            {
+                <p>Pass</p>
+            }
+            else if (action is PlayerAction.Play play)
+            {
+                <p>Play:</p>
+                @foreach (var card in play.Cards)
+                {
+                    <p>@card.Suit.ToSymbol() @card.Rank.ToSymbol()</p>
+                }
+            }
+        </MudStack>
+    }
+</div>
+
+@code
+{
+    private const int PlayerCount = 4;
+    private int _simulationCount = 1;
+    private readonly MonteCarloSolver _solver = new();
+    private readonly PlayerIndex _userPlayerIndex = new(0);
+    private readonly HashSet<Card> _selectedCards = [];
+    private readonly List<(PlayerIndex, PlayerAction)> _actionHistory = [];
+
+    private GameState _gameState = DaifugoHelper.GenerateInitialGameState(PlayerCount);
+    private ImmutableList<Card> UsersHand => _gameState.Hands[_userPlayerIndex.Value];
+    private bool AreSelectedCardsValid => DaifugoGame.IsValidPlay([.._selectedCards], _gameState.Table);
+
+    private void OnToggleCard(Card card)
+    {
+        if (!_selectedCards.Contains(card) && _selectedCards.Count < 4)
+        {
+            _selectedCards.Add(card);
+        }
+        else
+        {
+            _selectedCards.Remove(card);
+        }
+    }
+
+    private void OnUserAction(PlayerAction action)
+    {
+        // プレイなのにカードを選択していない場合は無視
+        if (action is PlayerAction.Play && _selectedCards.Count == 0) return;
+        // 選択したカードが不法な場合は無視
+        if (action is PlayerAction.Play play &&
+            !DaifugoGame.IsValidPlay(play.Cards, _gameState.Table)) return;
+        
+        _gameState = DaifugoGame.PlayOneTurn(_gameState, action);
+        _selectedCards.Clear();
+        _actionHistory.Add((_userPlayerIndex, action));
+        // コンピュータのターンを処理
+        while (_gameState.PlayerIndex !=  _userPlayerIndex)
+        {
+            var currentPlayerIndex = _gameState.PlayerIndex;
+            var solverInput = new SolverInput(_gameState);
+            var bestAction = _solver.FindMostValidPlay(solverInput, _simulationCount);
+            _gameState = DaifugoGame.PlayOneTurn(_gameState, bestAction);
+            _actionHistory.Add((currentPlayerIndex, bestAction));
+        }
+    }
+}

@@ -1,0 +1,10 @@
+@using Daifugo.Lib
+
+<MudPaper Class="d-flex align-center justify-center pa-2" Elevation="4" Style="width: 70px; height: 105px;">
+    <MudText Typo="Typo.h5">@Card.Suit.ToSymbol() @Card.Rank.ToSymbol()</MudText>
+</MudPaper>
+
+@code {
+    [Parameter]    
+    public required Card Card { get; set; }
+}
