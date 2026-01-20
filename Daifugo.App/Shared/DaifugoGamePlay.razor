@@ -36,11 +36,12 @@
 
 <MudStack Row="true" Justify="Justify.Center" Class="mt-4">
     <MudButton OnClick="@(() => OnUserAction(new PlayerAction.Play([.._selectedCards])))"
-               Disabled="@(!AreSelectedCardsValid)"
+               Disabled="@(!AreSelectedCardsValid || !IsUserTurn)"
                Variant="Variant.Filled" Color="Color.Primary">
         Play
     </MudButton>
     <MudButton OnClick="@(() => OnUserAction(new PlayerAction.Pass()))"
+               Disabled="!IsUserTurn"
                Variant="Variant.Outlined" Color="Color.Primary">
         Pass
     </MudButton>
@@ -83,6 +84,7 @@
     private ImmutableList<Card> UsersHand => _gameState.Hands[_userPlayerIndex.Value];
     private bool AreSelectedCardsValid => DaifugoGame.IsValidPlay([.._selectedCards], _gameState.Table);
     private PlayerIndex CurrentPlayerIndex => _gameState.PlayerIndex;
+    private bool IsUserTurn => _gameState.PlayerIndex == _userPlayerIndex;
 
     protected override async Task OnInitializedAsync()
     {
@@ -121,7 +123,7 @@
     
     private async Task _processComputerTurn()
     {
-        while (_gameState.PlayerIndex !=  _userPlayerIndex)
+        while (_gameState.PlayerIndex !=  _userPlayerIndex || DaifugoGame.IsGameOver([.._gameState.Hands.Select(h => h.Count)]))
         {
             await Task.Delay(100);
             StateHasChanged();
