@@ -12,10 +12,6 @@
     }
 </div>
 
-<div>
-    現在のターン: プレイヤー@(CurrentPlayerIndex.Value + 1)
-</div>
-
 <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Class="my-2">
     @if (IsGameOver)
     {
@@ -40,7 +36,7 @@
 </MudStack>
 
 
-<MudStack Row="true" Wrap="Wrap.Wrap" Justify="Justify.Center" Spacing="2">
+<MudStack Row="true" Wrap="Wrap.Wrap" Justify="Justify.Center" Spacing="2" Class="mt-16">
     @foreach (var card in UsersHand)
     {
         var isSelected = _selectedCards.Contains(card);
